@@ -7,6 +7,25 @@ fn main() {
     file.read_to_string(&mut text).unwrap();
 
     println!("Part 1:");
+    part1(&text);
 
     println!("\nPart 2:");
+    part2(&text);
 }
+
+fn part1(text: &String) {
+    println!(
+        "{}\n",
+        text.split("\n\n")
+            .map(|block| {
+                block
+                    .lines()
+                    .map(|x| x.parse::<i64>().unwrap())
+                    .sum::<i64>()
+            })
+            .max()
+            .unwrap()
+    );
+}
+
+fn part2(text: &str) {}
