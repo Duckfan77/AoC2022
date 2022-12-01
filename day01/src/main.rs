@@ -28,4 +28,17 @@ fn part1(text: &String) {
     );
 }
 
-fn part2(text: &str) {}
+fn part2(text: &str) {
+    let mut elves: Vec<i64> = text
+        .split("\n\n")
+        .map(|block| {
+            block
+                .lines()
+                .map(|x| x.parse::<i64>().unwrap())
+                .sum::<i64>()
+        })
+        .collect::<Vec<_>>();
+    elves.sort();
+
+    println!("{}\n", elves[elves.len() - 3..].iter().sum::<i64>());
+}
