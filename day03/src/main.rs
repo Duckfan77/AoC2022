@@ -15,18 +15,9 @@ fn main() {
 
 fn val(c: char) -> i64 {
     let i = c as i64;
-    if c != '.' {
-        print!("Found {}, {}, ", c, i)
-    }
     match c {
-        'a'..='z' => {
-            println!("returning {}", i - 96);
-            i - 96
-        }
-        'A'..='Z' => {
-            println!("returning {}", i - 64 + 26);
-            i - 64 + 26
-        }
+        'a'..='z' => i - 96,
+        'A'..='Z' => i - 64 + 26,
         '.' => 0,
         _ => unreachable!(),
     }
