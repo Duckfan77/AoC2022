@@ -13,6 +13,36 @@ fn main() {
     part2(&text);
 }
 
-fn part1(_text: &String) {}
+fn val(c: char) -> i64 {
+    let i = c as i64;
+    if c != '.' {
+        print!("Found {}, {}, ", c, i)
+    }
+    match c {
+        'a'..='z' => {
+            println!("returning {}", i - 96);
+            i - 96
+        }
+        'A'..='Z' => {
+            println!("returning {}", i - 64 + 26);
+            i - 64 + 26
+        }
+        '.' => 0,
+        _ => unreachable!(),
+    }
+}
+
+fn part1(text: &String) {
+    println!(
+        "{}",
+        text.lines()
+            .map(|line| {
+                let (f, l) = line.split_at(line.len() / 2);
+                let f = f.chars().collect::<Vec<_>>();
+                val(l.chars().find(|c| f.contains(c)).unwrap_or('.'))
+            })
+            .sum::<i64>()
+    );
+}
 
 fn part2(_text: &String) {}
