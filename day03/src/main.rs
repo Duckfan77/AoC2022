@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -36,4 +37,20 @@ fn part1(text: &String) {
     );
 }
 
-fn part2(_text: &String) {}
+fn part2(text: &String) {
+    println!(
+        "{}",
+        text.lines()
+            .tuple_windows()
+            .step_by(3)
+            .map(|(a, b, c)| {
+                let a = a.chars().collect::<Vec<_>>();
+                let b = b.chars().collect::<Vec<_>>();
+                val(c
+                    .chars()
+                    .find(|c| a.contains(c) && b.contains(c))
+                    .unwrap_or('.'))
+            })
+            .sum::<i64>()
+    );
+}
