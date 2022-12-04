@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -47,4 +46,19 @@ fn part1(text: &String) {
     );
 }
 
-fn part2(_text: &String) {}
+fn overlaps(r1: Range, r2: Range) -> bool {
+    (r1.l <= r2.l && r2.l <= r1.r) || (r2.l <= r1.l && r1.l <= r2.r)
+}
+
+fn part2(text: &String) {
+    println!(
+        "{}",
+        text.lines()
+            .map(|l| {
+                let (l, r) = l.split_once(",").unwrap();
+                (l, r)
+            })
+            .filter(|(l, r)| overlaps((*l).into(), (*r).into()))
+            .count()
+    );
+}
