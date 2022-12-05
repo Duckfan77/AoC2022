@@ -45,7 +45,15 @@ fn parse_line(line: &str) -> (usize, usize, usize) {
     )
 }
 
-fn move_crates_group(stacks: &mut Vec<Vec<char>>, start: usize, end: usize, count: usize) {}
+fn move_crates_group(stacks: &mut Vec<Vec<char>>, start: usize, end: usize, count: usize) {
+    let mut temp = Vec::new();
+    for _ in 0..count {
+        temp.push(stacks[start].pop().expect("popped from empty stack"));
+    }
+    for _ in 0..count {
+        stacks[end].push(temp.pop().unwrap());
+    }
+}
 
 fn part1(text: &String) {
     let mut stacks = get_start();
