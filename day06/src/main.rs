@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -13,6 +14,19 @@ fn main() {
     part2(&text);
 }
 
-fn part1(text: &String) {}
+fn part1(text: &String) {
+    println!(
+        "{}",
+        text.char_indices()
+            .tuple_windows()
+            .find(|(a, b, c, d)| {
+                a.1 != b.1 && a.1 != c.1 && a.1 != d.1 && b.1 != c.1 && b.1 != d.1 && c.1 != d.1
+            })
+            .unwrap()
+            .3
+             .0
+            + 1
+    );
+}
 
 fn part2(text: &String) {}
