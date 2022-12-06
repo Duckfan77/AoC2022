@@ -29,4 +29,24 @@ fn part1(text: &String) {
     );
 }
 
-fn part2(text: &String) {}
+fn part2(text: &String) {
+    let chars = text.char_indices().collect::<Vec<_>>();
+    println!(
+        "{}",
+        chars
+            .windows(14)
+            .find(|x| {
+                for i in 0..x.len() {
+                    for j in i + 1..x.len() {
+                        if x[i].1 == x[j].1 {
+                            return false;
+                        }
+                    }
+                }
+                true
+            })
+            .unwrap()[13]
+            .0
+            + 1
+    );
+}
