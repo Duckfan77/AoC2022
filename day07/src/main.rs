@@ -64,7 +64,7 @@ impl Line {
 #[derive(Debug)]
 enum DirTreeNode {
     Dir { name: String, size: Option<u64> },
-    File { size: u64, name: String },
+    File { size: u64, _name: String },
 }
 
 fn get_size(node: NodeId, tree: &mut Arena<DirTreeNode>) -> u64 {
@@ -78,7 +78,7 @@ fn get_size(node: NodeId, tree: &mut Arena<DirTreeNode>) -> u64 {
     {
         match tree.get_mut(node).unwrap().get_mut() {
             DirTreeNode::Dir { name: _, size } => size.replace(sum),
-            DirTreeNode::File { size, name: _ } => return *size,
+            DirTreeNode::File { size, _name: _ } => return *size,
         };
     }
 
@@ -94,7 +94,7 @@ fn add_content(ls: Vec<Line>, curdir: NodeId, tree: &mut Arena<DirTreeNode>) {
                 name: name,
                 size: None,
             },
-            Line::File { name, size } => DirTreeNode::File { size, name },
+            Line::File { name, size } => DirTreeNode::File { size, _name: name },
         };
         let nodeid = tree.new_node(node);
         curdir.append(nodeid, tree);
@@ -114,7 +114,7 @@ fn find_dir(dirname: String, curdir: NodeId, tree: &Arena<DirTreeNode>) -> NodeI
                         return child;
                     }
                 }
-                DirTreeNode::File { size: _, name: _ } => (),
+                DirTreeNode::File { size: _, _name: _ } => (),
             }
         }
 
@@ -153,13 +153,57 @@ fn part1(text: &String) {
                     0
                 }
             }
-            DirTreeNode::File { size: _, name: _ } => 0,
+            DirTreeNode::File { size: _, _name: _ } => 0,
         }
     }
-
-    println!("{:?}", root.debug_pretty_print(&tree));
 
     println!("{}", total)
 }
 
-fn part2(text: &String) {}
+fn part2(text: &String) {
+    let mut tree = Arena::new();
+    let root = tree.new_node(DirTreeNode::Dir {
+        name: "/".to_string(),
+        size: None,
+    });
+
+    let mut curdir = root;
+
+    for block in text.split("$") {
+        let line = Line::parse_block(block);
+        match line {
+            Line::Cd { dirname } => curdir = find_dir(dirname, curdir, &tree),
+            Line::Ls { contents } => add_content(contents, curdir, &mut tree),
+            Line::Dir { name: _ } => unreachable!(),
+            Line::File { name: _, size: _ } => unreachable!(),
+        }
+    }
+
+    get_size(root, &mut tree); // populate all sizes for directories.
+
+    let total = 70000000;
+    let need = 30000000;
+    let current = total
+        - match tree.get(root).unwrap().get() {
+            DirTreeNode::Dir { name: _, size } => size.unwrap(),
+            DirTreeNode::File { size: _, _name: _ } => unreachable!(),
+        };
+
+    println!(
+        "{}",
+        root.descendants(&tree)
+            .map(|nid| tree.get(nid).unwrap().get())
+            .filter_map(|dirnode| match dirnode {
+                DirTreeNode::Dir { name: _, size } => {
+                    if (size.unwrap() + current) > need {
+                        Some(size.unwrap())
+                    } else {
+                        None
+                    }
+                }
+                DirTreeNode::File { size: _, _name: _ } => None,
+            })
+            .min()
+            .unwrap()
+    );
+}
