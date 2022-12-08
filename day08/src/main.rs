@@ -92,4 +92,91 @@ fn part1(text: &String) {
     );
 }
 
-fn part2(text: &String) {}
+fn visscore(row: usize, col: usize, map: &Vec<Vec<(u32, Option<u64>)>>) -> u64 {
+    let height = map[row][col].0;
+
+    let lscore = map[row][0..col]
+        .iter()
+        .rev()
+        .scan(true, |state, (h, _)| {
+            if *state == false {
+                None
+            } else {
+                *state = *h < height;
+                Some(h)
+            }
+        })
+        .count() as u64;
+
+    let rscore = map[row][col + 1..]
+        .iter()
+        .scan(true, |state, (h, _)| {
+            if *state == false {
+                None
+            } else {
+                *state = *h < height;
+                Some(h)
+            }
+        })
+        .count() as u64;
+
+    let uscore = map[0..row]
+        .iter()
+        .rev()
+        .map(|row| row[col])
+        .scan(true, |state, (h, _)| {
+            if *state == false {
+                None
+            } else {
+                *state = h < height;
+                Some(h)
+            }
+        })
+        .count() as u64;
+
+    let dscore = map[row + 1..]
+        .iter()
+        .map(|row| row[col])
+        .scan(true, |state, (h, _)| {
+            if *state == false {
+                None
+            } else {
+                *state = h < height;
+                Some(h)
+            }
+        })
+        .count() as u64;
+
+    return lscore * rscore * uscore * dscore;
+}
+
+fn part2(text: &String) {
+    let mut rows: Vec<Vec<(u32, Option<u64>)>> = text
+        .lines()
+        .map(|line| {
+            line.chars()
+                .map(|c| (c.to_string().parse::<u32>().unwrap(), None))
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+
+    let len = rows.len();
+    let rowlen = rows[0].len();
+
+    // ignore border trees, always 0, can't be max
+    for i in 1..len - 1 {
+        for j in 1..rowlen - 1 {
+            let score = visscore(i, j, &rows);
+            rows[i][j].1.replace(score);
+        }
+    }
+
+    println!(
+        "{}",
+        rows.iter()
+            .flat_map(|row| row.iter())
+            .filter_map(|(_, s)| *s)
+            .max()
+            .unwrap()
+    );
+}
