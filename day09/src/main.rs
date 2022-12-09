@@ -37,78 +37,10 @@ impl Direction {
 }
 
 struct Rope {
-    head: (i64, i64),
-    tail: (i64, i64),
-}
-
-impl Rope {
-    fn new() -> Self {
-        Self {
-            head: (0, 0),
-            tail: (0, 0),
-        }
-    }
-
-    fn update_tail(&mut self) {
-        let xdif = self.head.0 - self.tail.0;
-        let ydif = self.head.1 - self.tail.1;
-
-        if ydif.abs() < 2 && xdif.abs() < 2 {
-            return; // early return, nothing to do.
-        }
-
-        if xdif == 0 {
-            // move on y
-            self.tail.1 += ydif / 2; // ydif must be +-2
-        } else if ydif == 0 {
-            self.tail.0 += xdif / 2; // xdif must be +-2
-        } else {
-            // move on both
-            if xdif.abs() == 2 {
-                // xdif.abs() = 2 and ydif.abs() = 1
-                self.tail.0 += xdif / 2;
-                self.tail.1 += ydif;
-            } else {
-                // xdif.abs() = 1 and ydif.abs() = 2
-                self.tail.0 += xdif;
-                self.tail.1 += ydif / 2;
-            }
-        }
-    }
-
-    fn move_head(&mut self, dir: Direction) -> (i64, i64) {
-        match dir {
-            Direction::Up => self.head.1 += 1,
-            Direction::Left => self.head.0 -= 1,
-            Direction::Down => self.head.1 -= 1,
-            Direction::Right => self.head.0 += 1,
-        }
-
-        self.update_tail();
-
-        self.tail
-    }
-}
-
-fn part1(text: &String) {
-    let mut set = HashSet::new();
-    let mut rope = Rope::new();
-    set.insert((0, 0));
-    for line in text.lines() {
-        let (d, i) = Direction::parse(line);
-        for _ in 0..i {
-            set.insert(rope.move_head(d));
-        }
-    }
-
-    println!("{}", set.len())
-}
-
-struct GenRope {
     knots: Vec<(i64, i64)>,
 }
 
-impl GenRope {
+impl Rope {
     fn new(len: usize) -> Self {
         Self {
             knots: vec![(0, 0); len],
@@ -165,9 +97,23 @@ impl GenRope {
     }
 }
 
+fn part1(text: &String) {
+    let mut set = HashSet::new();
+    let mut rope = Rope::new(2);
+    set.insert((0, 0));
+    for line in text.lines() {
+        let (d, i) = Direction::parse(line);
+        for _ in 0..i {
+            set.insert(rope.move_head(d));
+        }
+    }
+
+    println!("{}", set.len())
+}
+
 fn part2(text: &String) {
     let mut set = HashSet::new();
-    let mut rope = GenRope::new(10);
+    let mut rope = Rope::new(10);
     set.insert((0, 0));
     for line in text.lines() {
         let (d, i) = Direction::parse(line);
