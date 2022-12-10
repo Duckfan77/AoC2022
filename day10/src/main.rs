@@ -57,4 +57,37 @@ fn part1(text: &String) {
     println!("{}", total);
 }
 
-fn part2(text: &String) {}
+fn part2(text: &String) {
+    let mut screen = [['.'; 40]; 6];
+    let mut i: i64 = 0;
+    let mut x = 1;
+
+    for op in text.lines().map(|line| Op::parse(line)) {
+        if ((i % 40) - x).abs() < 2 {
+            screen[(i / 40) as usize][(i % 40) as usize] = '#';
+        }
+
+        match op {
+            Op::Noop => i += 1,
+            Op::Add(v) => {
+                //cycle 1
+                i += 1;
+
+                //cycle 2
+                if ((i % 40) - x).abs() < 2 {
+                    screen[(i / 40) as usize][(i % 40) as usize] = '#';
+                }
+
+                i += 1;
+                x += v
+            }
+        }
+    }
+
+    for line in screen {
+        for c in line {
+            print!("{}", c);
+        }
+        println!();
+    }
+}
