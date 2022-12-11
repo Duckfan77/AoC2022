@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::collections::VecDeque;
 use std::fs::File;
 use std::io::prelude::*;
@@ -90,6 +91,22 @@ impl Monkey {
             })
             .collect()
     }
+
+    fn take_turn2(&mut self, safemod: usize) -> Vec<(usize, usize)> {
+        self.count += self.items.len();
+
+        self.items
+            .drain(..)
+            .map(|item| {
+                let new = self.op.apply(item) % safemod;
+                if new % self.divtest == 0 {
+                    (new, self.true_i)
+                } else {
+                    (new, self.false_i)
+                }
+            })
+            .collect()
+    }
 }
 
 fn part1(text: &String) {
@@ -116,4 +133,28 @@ fn part1(text: &String) {
     println!("{}", counts[counts.len() - 1] * counts[counts.len() - 2])
 }
 
-fn part2(text: &String) {}
+fn part2(text: &String) {
+    let mut monkeys = text
+        .split("\n\n")
+        .map(|block| Monkey::parse(block))
+        .collect::<Vec<_>>();
+
+    let safemod: usize = monkeys.iter().map(|m| m.divtest).unique().product();
+
+    for _ in 0..10_000 {
+        for i in 0..monkeys.len() {
+            let res = monkeys[i].take_turn2(safemod);
+            for (item, j) in res {
+                monkeys[j].items.push_back(item);
+            }
+        }
+    }
+
+    let mut counts = monkeys
+        .iter()
+        .map(|monkey| monkey.count)
+        .collect::<Vec<_>>();
+    counts.sort();
+
+    println!("{}", counts[counts.len() - 1] * counts[counts.len() - 2])
+}
