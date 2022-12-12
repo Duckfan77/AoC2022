@@ -74,4 +74,66 @@ fn part1(text: &String) {
     )
 }
 
-fn part2(text: &String) {}
+fn part2(text: &String) {
+    let mut graph: Graph<char, i32, Directed> = Graph::new();
+    let mut start = (0, 0);
+    let mut end = (0, 0);
+    let grid = text
+        .lines()
+        .enumerate()
+        .map(|(i, line)| {
+            line.char_indices()
+                .map(|(j, c)| {
+                    if c == 'S' {
+                        start = (i, j);
+                        ('a'.into(), graph.add_node('S'))
+                    } else if c == 'E' {
+                        end = (i, j);
+                        ('z'.into(), graph.add_node('E'))
+                    } else {
+                        (c.into(), graph.add_node(c))
+                    }
+                })
+                .collect::<Vec<(u32, NodeIndex)>>()
+        })
+        .collect::<Vec<_>>();
+
+    for i in 0..grid.len() {
+        for j in 0..grid[0].len() {
+            let curspot = grid[i][j];
+            for (imod, jmod) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                let adji = ((i as isize) + imod) as usize;
+                let adjj = ((j as isize) + jmod) as usize;
+                match grid.get(adji) {
+                    Some(r) => match r.get(adjj) {
+                        Some(end) => {
+                            if curspot.0 + 1 >= end.0 {
+                                graph.add_edge(curspot.1, end.1, 1);
+                            };
+                        }
+                        None => continue,
+                    },
+                    None => continue,
+                };
+            }
+        }
+    }
+
+    println!(
+        "{}",
+        grid.iter()
+            .flat_map(|r| {
+                r.iter().filter_map(|(c, nid)| {
+                    if *c == 'a' as u32 {
+                        dijkstra(&graph, *nid, Some(grid[end.0][end.1].1), |_| 1)
+                            .get(&grid[end.0][end.1].1)
+                            .copied()
+                    } else {
+                        None
+                    }
+                })
+            })
+            .min()
+            .unwrap()
+    );
+}
