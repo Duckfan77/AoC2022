@@ -25,6 +25,7 @@ impl Pair {
     }
 }
 
+#[derive(Clone)]
 enum Packet {
     Num(i64),
     List(Vec<Packet>),
@@ -38,6 +39,14 @@ impl PartialEq for Packet {
             (Self::Num(l0), Self::List(_)) => Packet::List(vec![Packet::Num(*l0)]) == *other,
             (Self::List(_), Self::Num(r0)) => *self == Packet::List(vec![Packet::Num(*r0)]),
         }
+    }
+}
+
+impl Eq for Packet {}
+
+impl Ord for Packet {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
     }
 }
 
@@ -91,4 +100,31 @@ fn part1(text: &String) {
     );
 }
 
-fn part2(text: &String) {}
+fn part2(text: &String) {
+    let mut packets = text
+        .split_ascii_whitespace()
+        .map(|line| Packet::from_val(&serde_json::from_str(line).unwrap()))
+        .collect::<Vec<Packet>>();
+
+    let div1 = Packet::List(vec![Packet::List(vec![Packet::Num(2)])]);
+    let div2 = Packet::List(vec![Packet::List(vec![Packet::Num(6)])]);
+    packets.push(div1.clone());
+    packets.push(div2.clone());
+
+    packets.sort();
+
+    println!(
+        "{}",
+        packets
+            .iter()
+            .enumerate()
+            .filter_map(|(i, p)| {
+                if p == &div1 || p == &div2 {
+                    Some(i + 1)
+                } else {
+                    None
+                }
+            })
+            .product::<usize>()
+    );
+}
