@@ -16,15 +16,12 @@ fn main() {
 }
 
 enum Tile {
-    Air,
     Rock,
     ActiveSand,
     RestSand,
 }
 
 struct Grid {
-    left_edge: usize,
-    right_edge: usize,
     bottom_edge: usize,
     source: (usize, usize),
     active: (usize, usize),
@@ -40,16 +37,13 @@ enum State {
 
 impl Grid {
     fn step(&mut self) -> State {
-        if self.active.1 > self.bottom_edge
-            || self.active.0 < self.left_edge
-            || self.active.1 > self.right_edge
-        {
+        if self.active.1 > self.bottom_edge + 4 {
             return State::Void;
         }
 
         let down1 = (self.active.0, self.active.1 + 1);
         match self.grid.get(&down1) {
-            None | Some(Tile::Air) => {
+            None => {
                 self.grid.remove(&self.active);
                 self.grid.insert(down1, Tile::ActiveSand);
                 self.active = down1;
@@ -61,7 +55,7 @@ impl Grid {
 
         let ld1 = (self.active.0 - 1, self.active.1 + 1);
         match self.grid.get(&ld1) {
-            None | Some(Tile::Air) => {
+            None => {
                 self.grid.remove(&self.active);
                 self.grid.insert(ld1, Tile::ActiveSand);
                 self.active = ld1;
@@ -73,7 +67,7 @@ impl Grid {
 
         let rd1 = (self.active.0 + 1, self.active.1 + 1);
         match self.grid.get(&rd1) {
-            None | Some(Tile::Air) => {
+            None => {
                 self.grid.remove(&self.active);
                 self.grid.insert(rd1, Tile::ActiveSand);
                 self.active = rd1;
@@ -110,11 +104,44 @@ impl Grid {
         i - 1
     }
 
+    fn step_floor(&mut self) -> State {
+        if self.active.1 == self.bottom_edge + 1 {
+            self.grid.insert(self.active, Tile::RestSand);
+            return State::Rest;
+        }
+        self.step()
+    }
+
+    fn run_floor(&mut self) -> State {
+        let mut state = State::Stepped;
+        self.grid.insert(self.source, Tile::ActiveSand);
+        self.active = self.source;
+
+        while state == State::Stepped {
+            state = self.step_floor();
+        }
+
+        if self.active == self.source {
+            State::Void
+        } else {
+            state
+        }
+    }
+
+    fn count_spawns_floor(&mut self) -> usize {
+        let mut state = State::Rest;
+        let mut i = 0;
+        while state != State::Void {
+            state = self.run_floor();
+            i = i + 1;
+        }
+
+        i
+    }
+
     fn new(file: &str) -> Self {
         let mut grid = HashMap::new();
         let mut bottom = 0;
-        let mut left = 500;
-        let mut right = 500;
 
         for line in file.lines() {
             for ((x1, y1), (x2, y2)) in line
@@ -128,18 +155,6 @@ impl Grid {
                 })
                 .tuple_windows()
             {
-                if x1 < left {
-                    left = x1;
-                }
-                if x2 < left {
-                    left = x2;
-                }
-                if x1 > right {
-                    right = x1;
-                }
-                if x2 > right {
-                    right = x2;
-                }
                 if y1 > bottom {
                     bottom = y1;
                 }
@@ -160,8 +175,6 @@ impl Grid {
         }
 
         Self {
-            left_edge: left,
-            right_edge: right,
             bottom_edge: bottom,
             source: (500, 0),
             active: (500, 0),
@@ -175,4 +188,7 @@ fn part1(text: &String) {
     println!("{}", grid.count_spawns());
 }
 
-fn part2(text: &String) {}
+fn part2(text: &String) {
+    let mut grid = Grid::new(text);
+    println!("{}", grid.count_spawns_floor());
+}
