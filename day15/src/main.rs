@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::prelude::*;
@@ -119,4 +120,42 @@ fn part1(text: &String) {
     // 4687825
 }
 
-fn part2(text: &String) {}
+static MAX: i64 = 4000000;
+
+fn part2(text: &String) {
+    let modified_input = text
+        .replace("Sensor at x=", "")
+        .replace(" y=", "")
+        .replace(": closest beacon is at x=", ":");
+
+    let sensor_dist = modified_input
+        .lines()
+        .map(|line| {
+            let (p1, p2) = line.split_once(":").unwrap();
+            let (x1, y1) = p1.split_once(",").unwrap();
+            let (x2, y2) = p2.split_once(",").unwrap();
+            let source = Point::new(x1.parse().unwrap(), y1.parse().unwrap());
+            let beacon = Point::new(x2.parse().unwrap(), y2.parse().unwrap());
+
+            (source, source.manhattan_dist(&beacon))
+        })
+        .collect::<Vec<_>>();
+
+    for i in 100000..=MAX {
+        if i % 100000 == 0 {
+            println!("x: {}", i);
+        }
+        (0..=MAX).into_par_iter().for_each(|j| {
+            let test_point = Point::new(i, j);
+            if sensor_dist
+                .iter()
+                .all(|(p, d)| p.manhattan_dist(&test_point) > *d)
+            {
+                println!("{}", i * 4000000 + j);
+                std::process::exit(0);
+            }
+        })
+    }
+}
+
+// 100000
