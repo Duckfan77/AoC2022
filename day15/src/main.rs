@@ -134,7 +134,7 @@ fn part1(text: &String) {
 
 static MAX: i64 = 4000000;
 
-fn part2(text: &String) {
+fn _part2(text: &String) {
     let modified_input = text
         .replace("Sensor at x=", "")
         .replace(" y=", "")
