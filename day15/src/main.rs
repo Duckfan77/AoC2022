@@ -12,7 +12,7 @@ fn main() {
     part1(&text);
 
     println!("\nPart 2:");
-    part2(&text);
+    part2_optimized(&text);
 }
 
 static Y: i64 = 2000000;
@@ -87,6 +87,18 @@ fn points_at_y(p: &Point, dist: u64) -> impl Iterator<Item = Point> {
     })
 }
 
+fn skip_pair(p: &Point, dist: u64, y: i64) -> Option<(i64, i64)> {
+    let px = p.x;
+    let py = p.y;
+    let yoff = y.abs_diff(py) as i64;
+    if yoff > dist as i64 {
+        None
+    } else {
+        let xoff = dist as i64 - yoff;
+        Some((px - xoff, px + xoff))
+    }
+}
+
 fn part1(text: &String) {
     let modified_input = text
         .replace("Sensor at x=", "")
@@ -155,6 +167,54 @@ fn part2(text: &String) {
                 std::process::exit(0);
             }
         })
+    }
+}
+
+fn part2_optimized(text: &String) {
+    let modified_input = text
+        .replace("Sensor at x=", "")
+        .replace(" y=", "")
+        .replace(": closest beacon is at x=", ":");
+
+    let sensor_dist = modified_input
+        .lines()
+        .map(|line| {
+            let (p1, p2) = line.split_once(":").unwrap();
+            let (x1, y1) = p1.split_once(",").unwrap();
+            let (x2, y2) = p2.split_once(",").unwrap();
+            let source = Point::new(x1.parse().unwrap(), y1.parse().unwrap());
+            let beacon = Point::new(x2.parse().unwrap(), y2.parse().unwrap());
+
+            (source, source.manhattan_dist(&beacon))
+        })
+        .collect::<Vec<_>>();
+
+    for y in 0..=MAX {
+        if y % 100000 == 0 {
+            println!("x: {}", y);
+        }
+
+        let mut skips = sensor_dist
+            .iter()
+            .filter_map(|(p, dist)| skip_pair(p, *dist, y))
+            .collect::<Vec<_>>();
+        skips.sort_unstable_by_key(|(s, _)| *s);
+
+        let mut x = 0;
+        while x <= MAX {
+            if let Ok(i) = skips.binary_search_by_key(&x, |(s, _)| *s) {
+                x = skips[i].1 + 1;
+            } else {
+                let test_point = Point::new(x, y);
+                if sensor_dist
+                    .iter()
+                    .all(|(p, d)| p.manhattan_dist(&test_point) > *d)
+                {
+                    println!("{}", x * 4000000 + y);
+                    std::process::exit(0);
+                }
+            }
+        }
     }
 }
 
